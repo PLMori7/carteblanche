@@ -14,6 +14,10 @@ import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
 
+import java.security.MessageDigest;
+
+import java.util.HashMap;
+
 public class Server implements ServerInterface {
 
 	public static void main(String[] args) {
@@ -21,8 +25,11 @@ public class Server implements ServerInterface {
 		server.run();
 	}
 
+	private HashMap<String, Integer> locked;
+
 	public Server() {
 		super();
+		locked = new HashMap<String, Integer>();
 	}
 
 	private void run() {
@@ -45,47 +52,14 @@ public class Server implements ServerInterface {
 		} catch (Exception e) {
 			System.err.println("Erreur: " + e.getMessage());
 		}
-
-		try {
-			System.out.println("New id: " + generateclientid());
-			if (create("test.txt")) {
-				System.out.println("New file");
-			}
-			else {
-				System.out.println("File already exists");
-			}
-			System.out.println("List: ");
-			System.out.println(list());
-		}
-		catch (Exception e) {
-			System.err.println(e.getMessage());
-		}
-
 	}
 
 	/*
-	 * Méthode accessible par RMI. Additionne les deux nombres passés en
-	 * paramètre.
+	 * Trouve le plus grand id dans 'id_list.txt' et en génère un plus grand  
 	 */
 	@Override
-	public int execute(int a, int b) throws RemoteException {
-		return a + b;
-	}
-
-	/*
-	 * Autre méthode accessible par RMI. Elle prend un tableau afin de pouvoir
-	 * lui envoyer des arguments de taille variable.
-	 */
-	@Override
-	public void execute(byte[] arg) throws RemoteException {
-		return;
-	}
-
-	/*
-	 * Trouve le plus grand id dans 'id.txt' et en génère un plus grand  
-	 */
 	public int generateclientid() throws Exception {
-		File file = new File("id.txt");
+		File file = new File("id_list.txt");
 		if (!file.exists()) {
 			file.createNewFile();
 		}
@@ -115,31 +89,78 @@ public class Server implements ServerInterface {
 	/*
 	 * Crée un nouveau fichier, retourne sans rien faire si le fichier existe déjà
 	 */
-	public boolean create(String name) throws Exception {
-		File file = new File("files/" + name);
+	@Override
+	public String create(String name) throws Exception {
+		File file = new File("server_files/" + name);
 		if (file.exists()) {
-			return false;
+			return "Fichier existe déjà";
 		}
 
 		file.createNewFile();
-		return true;
+		return name + " ajouté";
 	}
 
 	/*
 	 * Renvoie la liste des noms de fichiers avec le propriétaire du verrou si
 	 * tel est le cas
 	 */
+	@Override
 	public String list() throws Exception {
-		File folder = new File("files");
+		File folder = new File("server_files");
 		File[] list = folder.listFiles();	
 
 		String ret = "";
 		for (int i = 0; i < list.length; i++) {
 			if (list[i].isFile()) {
-				ret += list[i].getName() + " - Non verouillé\n";
+				if (locked.get(list[i].getName()) == null) {
+					ret += list[i].getName() + " - Non verouillé\n";
+				}
+				else {
+					int id = locked.get(list[i].getName());
+					ret += list[i].getName() + " - Verouillé par " + id + "\n";
+				}
 			}
 		}
 
+		ret += list.length + " fichier(s)";
 		return ret;
+	}
+
+	/*
+	 * Calcule le checksum MD5 du fichier spécifié. Si le checksum est différent de
+	 * celui qui est passé, le fichier à jour est retourné
+	 */
+	@Override
+	public File get(String name, byte[] checksum) throws Exception {
+		File file = new File("server_files/" + name);
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		MessageDigest md = MessageDigest.getInstance("MD5");
+
+		String line;
+		while ((line = reader.readLine()) != null) {
+			md.update(line.getBytes());
+		}	
+
+		if (!MessageDigest.isEqual(md.digest(), checksum)) {
+			return file;
+		}
+		else {
+			return null;
+		}
+	}
+
+	/*
+	 * Vérouille le fichier spécifié s'il ne l'est pas déjà, puis retourne
+	 * la dernière version du fichier au client
+	 */
+	@Override
+	public File lock(String name, int clientid, byte[] checksum) throws Exception {
+		if(locked.get(name) != null) {
+			System.err.println("File is already locked");
+			return null;
+		}
+
+		locked.put(name, clientid);
+		return get(name, checksum);
 	}
 }
