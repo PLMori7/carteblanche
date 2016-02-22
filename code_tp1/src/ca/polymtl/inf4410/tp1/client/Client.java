@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 
 import ca.polymtl.inf4410.tp1.shared.ServerInterface;
+import ca.polymtl.inf4410.tp1.shared.LockException;
 
 public class Client {
 	public static void main(String[] args) {
@@ -134,19 +135,19 @@ public class Client {
 					if (ret != null) {
 						sync(ret, arg);
 					}
-
-					System.out.println(arg + " verrouillé");
+					System.out.println(arg + " verrouillé.");
 				}
 				catch (Exception e) {
-					System.err.println("Erreur: " + e.getMessage());
+					System.err.println(e.getMessage());
 				}
 				break;
 			case "syncLocalDir":
 				try {
-						File[] ret = localServerStub.syncLocalDir();
+					File[] ret = localServerStub.syncLocalDir();
 					for (int i=0; i<ret.length; i++) {
 						sync(ret[i], ret[i].getName());
 					}
+					System.out.println("Répertoire synchronisé avec le serveur.");
 				}
 				catch (Exception e) {
 					System.err.println("Erreur: " + e.getMessage());
@@ -154,11 +155,8 @@ public class Client {
 				break;
 			case "push":
 				try {
-					System.err.println("BLOOP");
 					File file = new File("client_files/" + arg);
-					System.err.println("BLAP");
 					System.out.println(localServerStub.push(arg, file, id));
-					System.err.println("BLeepP");
 				}
 				catch (Exception e) {
 					System.err.println("Erreur: " + e.getMessage());
@@ -206,7 +204,6 @@ public class Client {
 		if (!source.exists()) {
 			return;
 		}
-
 		InputStream is = new FileInputStream(source);
 		Path path = Paths.get("client_files/" + dest);
 		Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);

@@ -9,8 +9,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import ca.polymtl.inf4410.tp1.shared.ServerInterface;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
@@ -27,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import ca.polymtl.inf4410.tp1.shared.ServerInterface;
+import ca.polymtl.inf4410.tp1.shared.LockException;
 
 public class Server implements ServerInterface {
 
@@ -55,8 +54,7 @@ public class Server implements ServerInterface {
 			registry.rebind("server", stub);
 			System.out.println("Server ready.");
 		} catch (ConnectException e) {
-			System.err
-					.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lancé ?");
+			System.err.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lancé ?");
 			System.err.println();
 			System.err.println("Erreur: " + e.getMessage());
 		} catch (Exception e) {
@@ -159,8 +157,7 @@ public class Server implements ServerInterface {
 	@Override
 	public File lock(String name, int clientid, byte[] checksum) throws Exception {
 		if(locked.get(name) != null) {
-			System.err.println("File is already locked");
-			return null;
+			throw new LockException(name + " est déjà verrouillé par " + locked.get(name));
 		}
 
 		locked.put(name, clientid);
@@ -168,36 +165,31 @@ public class Server implements ServerInterface {
 	}
 
 	/*
-	 * Vérouille le fichier spécifié s'il ne l'est pas déjà, puis retourne
-	 * la dernière version du fichier au client
+	 * Envoie une nouvelle version du fichier spécifié au serveur. 
 	 */
 	@Override
 	public String push(String name, File content, int clientid) throws Exception {
-		System.err.println("MEOW");
-		System.err.println(locked.get(name));
 		if(locked.get(name) == clientid) {
-			System.err.println("MOO");
 			byte[] cs = calculateChecksum(content);
 			File file = new File("server_files/" + name);
 			byte[] checksum = calculateChecksum(file);
-			System.err.println("CHECKSUM CALCULATED");
+			locked.remove(name);
 			if (MessageDigest.isEqual(cs, checksum)) {
-				System.err.println("A JOUR");
 				return name + " est déjà à jour.";
 			} else {
-				System.err.println("VA METRE A JOUR");
 				sync(content, name);
-				System.err.println("SYNCED");
 				return name + " a été mis à jour.";
 			}
 		} else {
-			System.out.println("is locked");
 			return name + " est vérouillé par un autre utilisateur.";
 		}
 	}
 
+	/*
+	 * Permet de récupérer les noms et les contenus de tous les fichiers du serveur. 
+	 */
 	@Override
-	public File[] syncLocalDir(){
+	public File[] syncLocalDir() throws Exception {
 		return getFilesList();
 	}
 
