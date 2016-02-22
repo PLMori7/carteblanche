@@ -1,5 +1,8 @@
 package ca.polymtl.inf4410.tp1.server;
 
+import java.util.HashMap;
+import java.rmi.AccessException;
+import java.rmi.NotBoundException;
 import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -13,10 +16,17 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.FileInputStream;
 
 import java.security.MessageDigest;
 
-import java.util.HashMap;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import ca.polymtl.inf4410.tp1.shared.ServerInterface;
 
 public class Server implements ServerInterface {
 
@@ -131,16 +141,10 @@ public class Server implements ServerInterface {
 	 */
 	@Override
 	public File get(String name, byte[] checksum) throws Exception {
-		System.err.println("BLaP");
 		File file = new File("server_files/" + name);
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		String line;
-		while ((line = reader.readLine()) != null) {
-			md.update(line.getBytes());
-		}	
+		byte[] cs = calculateChecksum(file);
 
-		if (!MessageDigest.isEqual(md.digest(), checksum)) {
+		if (!MessageDigest.isEqual(cs, checksum)) {
 			return file;
 		}
 		else {
@@ -163,6 +167,35 @@ public class Server implements ServerInterface {
 		return get(name, checksum);
 	}
 
+	/*
+	 * Vérouille le fichier spécifié s'il ne l'est pas déjà, puis retourne
+	 * la dernière version du fichier au client
+	 */
+	@Override
+	public String push(String name, File content, int clientid) throws Exception {
+		System.err.println("MEOW");
+		System.err.println(locked.get(name));
+		if(locked.get(name) == clientid) {
+			System.err.println("MOO");
+			byte[] cs = calculateChecksum(content);
+			File file = new File("server_files/" + name);
+			byte[] checksum = calculateChecksum(file);
+			System.err.println("CHECKSUM CALCULATED");
+			if (MessageDigest.isEqual(cs, checksum)) {
+				System.err.println("A JOUR");
+				return name + " est déjà à jour.";
+			} else {
+				System.err.println("VA METRE A JOUR");
+				sync(content, name);
+				System.err.println("SYNCED");
+				return name + " a été mis à jour.";
+			}
+		} else {
+			System.out.println("is locked");
+			return name + " est vérouillé par un autre utilisateur.";
+		}
+	}
+
 	@Override
 	public File[] syncLocalDir(){
 		return getFilesList();
@@ -172,5 +205,33 @@ public class Server implements ServerInterface {
 		File folder = new File("server_files");
 		File[] list = folder.listFiles();
 		return list;
+	}
+
+	private byte[] calculateChecksum(File file) throws Exception {
+		if (!file.exists()) {
+			return null;
+		}
+
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		MessageDigest md = MessageDigest.getInstance("MD5");
+
+		String line;
+		while ((line = reader.readLine()) != null) {
+			md.update(line.getBytes());
+		}
+
+		reader.close();
+		return md.digest();
+	}
+
+	private void sync(File source, String dest) throws Exception {
+		if (!source.exists()) {
+			return;
+		}
+
+		InputStream is = new FileInputStream(source);
+		Path path = Paths.get("server_files/" + dest);
+		Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);
+		is.close();
 	}
 }
