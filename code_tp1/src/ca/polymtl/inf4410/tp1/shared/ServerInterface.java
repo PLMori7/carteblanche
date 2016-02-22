@@ -11,4 +11,5 @@ public interface ServerInterface extends Remote {
 	String list() throws Exception;
 	File get(String name, byte[] checksum) throws Exception;
 	File lock(String name, int clientid, byte[] checksum) throws Exception;
+	File[] syncLocalDir() throws Exception;
 }

@@ -106,8 +106,7 @@ public class Server implements ServerInterface {
 	 */
 	@Override
 	public String list() throws Exception {
-		File folder = new File("server_files");
-		File[] list = folder.listFiles();	
+		File[] list = getFilesList();
 
 		String ret = "";
 		for (int i = 0; i < list.length; i++) {
@@ -132,10 +131,10 @@ public class Server implements ServerInterface {
 	 */
 	@Override
 	public File get(String name, byte[] checksum) throws Exception {
+		System.err.println("BLaP");
 		File file = new File("server_files/" + name);
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		MessageDigest md = MessageDigest.getInstance("MD5");
-
 		String line;
 		while ((line = reader.readLine()) != null) {
 			md.update(line.getBytes());
@@ -162,5 +161,16 @@ public class Server implements ServerInterface {
 
 		locked.put(name, clientid);
 		return get(name, checksum);
+	}
+
+	@Override
+	public File[] syncLocalDir(){
+		return getFilesList();
+	}
+
+	private File[] getFilesList(){
+		File folder = new File("server_files");
+		File[] list = folder.listFiles();
+		return list;
 	}
 }

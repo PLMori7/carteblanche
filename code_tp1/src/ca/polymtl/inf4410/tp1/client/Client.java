@@ -105,7 +105,9 @@ public class Client {
 					byte[] checksum = calculateChecksum(file);
 			 
 					// Recupére le fichier retourné par le serveur et synchroniser
+					System.err.println("BLEP");
 					File ret = localServerStub.get(arg, checksum);
+					System.err.println("BLOUPP");
 					if (ret != null) {
 						sync(ret, arg);
 						System.out.println(arg + " synchronisé");
@@ -141,12 +143,21 @@ public class Client {
 					System.err.println("Erreur: " + e.getMessage());
 				}
 				break;
-
+			case "syncLocalDir":
+				try {
+						File[] ret = localServerStub.syncLocalDir();
+					for (int i=0; i<ret.length; i++) {
+						sync(ret[i], ret[i].getName());
+					}
+				}
+				catch (Exception e) {
+					System.err.println("Erreur: " + e.getMessage());
+				}
+				break;
 			case "push":
 				/* TODO
 				try {
 
-					}
 				}
 				catch (Exception e) {
 					System.err.println("Erreur: " + e.getMessage());
