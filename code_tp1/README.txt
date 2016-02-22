@@ -32,7 +32,8 @@ Notes: 	Tous les fichiers du côté serveur se retrouvent dans le répertoire
 ------------------------- 1.2 - Démarrer le serveur ---------------------------
 
 Étape 1 - Aller dans le répertoire .../code_tp1
-Étape 2 - Entrer la commande "./server &"
+Étape 2 - Faire le build en lancant la commande "ant"
+Étape 3 - Entrer la commande "./server &"
 
 ###############################################################################
 #	     Partie 2 - Lancer les différentes commandes du client	      #
