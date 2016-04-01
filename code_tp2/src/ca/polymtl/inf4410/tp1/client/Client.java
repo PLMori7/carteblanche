@@ -50,13 +50,15 @@ public class Client {
 	private void run(String command, String arg) {
 		switch (command) {
 			case "fib":
+				System.out.println("FIB BOYS");
 				if (arg == null) {
 					System.out.println("Veuillez spécifier une valeur d'opérande.");
 					return;
 				}
 
 				try {
-					System.out.println(localServerStub.fib(Integer.parseInt(arg)));
+					System.out.println("CLIENT BEFORE FIB BOYS");
+					System.out.println(localServerStub.fibonacci(Integer.parseInt(arg)));
 				}
 				catch (Exception e) {
 					System.err.println("Erreur: " + e.getMessage());
@@ -64,12 +66,14 @@ public class Client {
 				break;
 
 			case "prime":
+				System.out.println("PRIME BOYS");
 				if (arg == null) {
 					System.out.println("Veuillez spécifier une valeur d'opérande.");
 					return;
 				}
 				try {
-					System.out.println(localServerStub.prime(Integer.parseInt(arg)));
+					System.out.println("CLIENT BEFORE PRIME BOYS");
+					System.out.println(localServerStub.primeFactor(Integer.parseInt(arg)));
 				}
 				catch (Exception e) {
 					System.err.println("Erreur: " + e.getMessage());

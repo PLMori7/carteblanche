@@ -27,10 +27,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import ca.polymtl.inf4410.tp1.shared.ServerInterface;
-import ca.polymtl.inf4410.tp2.operations;
+import ca.polymtl.inf4410.tp1.shared.Operations;
 
 public class Server implements ServerInterface {
-	Operation op;
+	Operations op;
 	public static void main(String[] args) {
 		Server server = new Server();
 		server.run();
@@ -71,23 +71,23 @@ public class Server implements ServerInterface {
 	 * Calcul le nieme terme de la suite de Fibonacci
 	 */
 	@Override
-	public int fib(int operand) throws Exception {
-		try {
+	public String fibonacci(int operand) throws Exception {
+//		try {
 			return operand + "ieme de Fibonacci : " + op.fib(operand);
-		} catch (Exception e) {
-			System.err.println("Erreur: " + e.getMessage());
-		}
+//		} catch (Exception e) {
+//			System.err.println("Erreur: " + e.getMessage());
+//		}
 	}
 
 	/*
 	 * Calcul le plus grand facteur premier
 	 */
 	@Override
-	public int prime(int operand) throws Exception {
-		try {
+	public String primeFactor(int operand) throws Exception {
+//		try {
 			return "Plus grand facteur premier de " + operand + " est : " + op.prime(operand);
-		} catch (Exception e) {
-			System.err.println("Erreur: " + e.getMessage());
-		}
+//		} catch (Exception e) {
+//			System.err.println("Erreur: " + e.getMessage());
+//		}
 	}
 }
