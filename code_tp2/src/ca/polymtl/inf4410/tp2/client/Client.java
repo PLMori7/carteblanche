@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp1.client;
+package ca.polymtl.inf4410.tp2.client;
 
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;
@@ -21,15 +21,20 @@ import java.nio.file.Paths;
 
 import java.security.MessageDigest;
 
-import ca.polymtl.inf4410.tp1.shared.ServerInterface;
+import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 
 public class Client {
 	public static void main(String[] args) {
 		String command = null;
 		String arg = null;
 
+		if (args.length == 1) {
+			command = args[0];
+		}
+		if (args.length > 1) {
 			command = args[0];
 			arg = args[1];
+		}
 
 		Client client = new Client();
 		client.run(command, arg);

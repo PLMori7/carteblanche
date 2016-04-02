@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp1.server;
+package ca.polymtl.inf4410.tp2.server;
 
 import java.util.HashMap;
 import java.rmi.AccessException;
@@ -9,7 +9,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import ca.polymtl.inf4410.tp1.shared.ServerInterface;
+import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 
 import java.io.File;
 import java.io.FileReader;
@@ -26,19 +26,19 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import ca.polymtl.inf4410.tp1.shared.ServerInterface;
-import ca.polymtl.inf4410.tp1.shared.Operations;
+import ca.polymtl.inf4410.tp2.shared.ServerInterface;
+import ca.polymtl.inf4410.tp2.shared.Operations;
 
-public class Server implements ServerInterface {
+public class ComputingServer implements ServerInterface {
 	Operations op;
 	public static void main(String[] args) {
-		Server server = new Server();
+		ComputingServer server = new ComputingServer();
 		server.run();
 	}
 
 	private HashMap<String, Integer> locked;
 
-	public Server() {
+	public ComputingServer() {
 		super();
 		locked = new HashMap<String, Integer>();
 	}
