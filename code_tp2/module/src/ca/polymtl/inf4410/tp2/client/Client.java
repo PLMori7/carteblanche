@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -22,6 +23,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 
 import ca.polymtl.inf4410.tp2.shared.ServerInterface;
+import ca.polymtl.inf4410.tp2.shared.Operation;
 
 public class Client {
 	public static void main(String[] args) {
@@ -75,6 +77,26 @@ public class Client {
 				}
 				try {
 					System.out.println(localServerStub.primeFactor(Integer.parseInt(arg)));
+				}
+				catch (Exception e) {
+					System.err.println("Erreur: " + e.getMessage());
+				}
+				break;
+			case "test":
+				if (arg != null) {
+					System.out.println("Cette commande ne nécéssite pas d'argument.");
+					return;
+				}
+				try {
+					Operation op1 = new Operation("fib", 5);
+					Operation op2 = new Operation("prime", 57);
+					Operation op3 = new Operation("prime", 255);
+
+					ArrayList<Operation> taskList = new ArrayList<Operation>();
+					taskList.add(op1);
+					taskList.add(op2);
+					taskList.add(op3);
+					localServerStub.handleTasks(taskList);
 				}
 				catch (Exception e) {
 					System.err.println("Erreur: " + e.getMessage());
