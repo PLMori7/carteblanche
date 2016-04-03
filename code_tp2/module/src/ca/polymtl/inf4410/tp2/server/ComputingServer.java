@@ -36,14 +36,15 @@ public class ComputingServer implements ServerInterface {
 
 	public static void main(String[] args) {
 		ComputingServer server = new ComputingServer();
-		if (args.length != 3) {
+		if (args.length != 4) {
 			System.err.println("Veuillez entrez les bons arguments dans l'ordre suivant : \n"
-					+ "./server   PORT   TASK_SIZE_CAPACITY   MALICE_LEVEL.");
+					+ "./server   NAME PORT   TASK_SIZE_CAPACITY   MALICE_LEVEL.");
 			return;
 		} else {
-			int port = Integer.parseInt(args[0]);
-			int capacity = Integer.parseInt(args[1]);
-			int malice = Integer.parseInt(args[2]);
+			String name = args[0];
+			int port = Integer.parseInt(args[1]);
+			int capacity = Integer.parseInt(args[2]);
+			int malice = Integer.parseInt(args[3]);
 
 			if ((port > 5050) || (port < 5000)) {
 				System.err.println("Erreur: Veuillez entrez un port entre 5000 et 5050.");
@@ -52,7 +53,7 @@ public class ComputingServer implements ServerInterface {
 				System.err.println("Erreur: Veuillez entrez un niveau de malice entre 1 et 10.");
 				return;
 			} else {
-				server.run(port, capacity, malice);
+				server.run(name, port, capacity, malice);
 			}
 		}
 	}
@@ -64,8 +65,9 @@ public class ComputingServer implements ServerInterface {
 		locked = new HashMap<String, Integer>();
 	}
 
-	private void run(int port, int capacity, int malice) {
-		this.serverConfig = new ComputingServerConfig(port, capacity, malice);
+	private void run(String name, int port, int capacity, int malice) {
+		this.serverConfig = new ComputingServerConfig(name, port, capacity, malice);
+		System.out.println("Server Name: " + serverConfig.getName());
 		System.out.println("Server Port: " + serverConfig.getPort());
 		System.out.println("Server max task size: " + serverConfig.getTaskSizeCapacity());
 		System.out.println("Server malice lvl: " + serverConfig.getMaliceLevel());
@@ -75,10 +77,10 @@ public class ComputingServer implements ServerInterface {
 
 		try {
 			ServerInterface stub = (ServerInterface) UnicastRemoteObject
-					.exportObject(this, 0);
+					.exportObject(this, serverConfig.getPort());
 
-			Registry registry = LocateRegistry.getRegistry();
-			registry.rebind("server", stub);
+			Registry registry = LocateRegistry.getRegistry("127.0.0.1", 5000);
+			registry.rebind(serverConfig.getName(), stub);
 			System.out.println("Server ready.");
 		} catch (ConnectException e) {
 			System.err

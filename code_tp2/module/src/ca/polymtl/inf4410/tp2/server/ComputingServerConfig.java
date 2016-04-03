@@ -11,15 +11,26 @@ package ca.polymtl.inf4410.tp2.server;
 public class ComputingServerConfig {
 
     //ComputingServerConfig attributes
+    private String name;
     private int port; // Server Port
     private int taskSizeCapacity; // Maximum Task Size (max number of operations)
     private int maliceLevel; // Mischievious level (from 1 to 10)
 
     //ComputingServerConfig constructor
-    public ComputingServerConfig(int port, int taskSizeCapacity, int maliceLevel) {
+    public ComputingServerConfig(String name, int port, int taskSizeCapacity, int maliceLevel) {
+        this.name = name;
         this.port = port;
         this.taskSizeCapacity = taskSizeCapacity;
         this.maliceLevel = maliceLevel;
+    }
+
+    //Name getter & setter
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     //Port getter & setter

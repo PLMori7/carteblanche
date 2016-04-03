@@ -115,8 +115,8 @@ public class Client {
 		ServerInterface stub = null;
 
 		try {
-			Registry registry = LocateRegistry.getRegistry(hostname);
-			stub = (ServerInterface) registry.lookup("server");
+			Registry registry = LocateRegistry.getRegistry(hostname, 5000);
+			stub = (ServerInterface) registry.lookup("RWICHU");
 		} catch (NotBoundException e) {
 			System.out.println("Erreur: Le nom '" + e.getMessage()
 					+ "' n'est pas défini dans le registre.");
