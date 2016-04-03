@@ -19,6 +19,7 @@ import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Random;
 import java.security.MessageDigest;
 
 import java.nio.file.Files;
@@ -46,8 +47,10 @@ public class ComputingServer implements ServerInterface {
 
 			if ((port > 5050) || (port < 5000)) {
 				System.err.println("Erreur: Veuillez entrez un port entre 5000 et 5050.");
+				return;
 			} else if ((malice > 10) || (malice < 0)) {
 				System.err.println("Erreur: Veuillez entrez un niveau de malice entre 1 et 10.");
+				return;
 			} else {
 				server.run(port, capacity, malice);
 			}
@@ -89,27 +92,47 @@ public class ComputingServer implements ServerInterface {
 
 
 	/*
- * Calcul le nieme terme de la suite de Fibonacci
- */
+	 * Traite la liste de tâches envoyée par le Dispatcher.
+	 */
 	@Override
 	public int handleTasks(ArrayList<Operation> pendingOperations) throws Exception {
-		if (pendingOperations.size() > this.serverConfig.getTaskSizeCapacity()) {
-			System.err.println("La taille de la liste de tâches dépasse la capacité du serveur.");
+		int result = 0;
+		if (serverOverloaded(pendingOperations.size())) {
+			throw new Exception("Le serveur est trop chargé pour accepter cette tâche.");
 		} else {
 			for(Operation operation: pendingOperations) {
-				System.out.println("Operation : " + operation.getType() + " " + operation.getOperand());
+				System.out.println("Opération: " + operation.getType() + " " + operation.getOperand());
 				switch(operation.getType()){
 					case "fib":
-						System.out.println("Result : " + fibonacci(operation.getOperand()));
+						System.out.println("\tRésultat: " + fibonacci(operation.getOperand()));
+						result += fibonacci(operation.getOperand());
 						break;
 					case "prime":
-						System.out.println("Result : " + primeFactor(operation.getOperand()));
+						System.out.println("\tRésultat: " + primeFactor(operation.getOperand()));
+						result += primeFactor(operation.getOperand());
+						break;
+					default:
+						System.out.println("\t" + operation.getType() + " n'est pas une opération valide (doit être \"fib\" ou \"prime\").");
 						break;
 				}
 			}
-		}
 
-		return 0;
+		}
+		if (this.serverConfig.getMaliceLevel() == 0) {
+			System.out.println("Le serveur n'est pas malicieux.");
+		} else {
+			System.out.println("Alerte! Serveur malicieux d'indice: " + this.serverConfig.getMaliceLevel() + "!");
+			Random rand = new Random();
+			float malice = (rand.nextFloat() * 9) + 1;
+			System.out.println("Valeur malice: " + malice);
+			if ((malice <= this.serverConfig.getMaliceLevel()) && (malice >0)) {
+				System.out.println("Valeur compromise!");
+				result += (rand.nextFloat() * 99) +1;
+			}
+		}
+		System.out.println("Résultat des opérations: " + result);
+		System.out.println("Résultat des opérations après modulo: " + (result % 5000));
+		return result;
 	}
 
 
@@ -117,23 +140,39 @@ public class ComputingServer implements ServerInterface {
 	 * Calcul le nieme terme de la suite de Fibonacci
 	 */
 	@Override
-	public String fibonacci(int operand) throws Exception {
-//		try {
-			return operand + "ieme de Fibonacci : " + Operations.fib(operand);
-//		} catch (Exception e) {
-//			System.err.println("Erreur: " + e.getMessage());
-//		}
+	public int fibonacci(int operand) throws Exception {
+			return Operations.fib(operand);
 	}
 
 	/*
 	 * Calcul le plus grand facteur premier
 	 */
 	@Override
-	public String primeFactor(int operand) throws Exception {
-//		try {
-			return "Plus grand facteur premier de " + operand + " est : " + Operations.prime(operand);
-//		} catch (Exception e) {
-//			System.err.println("Erreur: " + e.getMessage());
-//		}
+	public int primeFactor(int operand) throws Exception {
+			return Operations.prime(operand);
+	}
+
+	/*
+	 * Vérifie si le serveur est en mesure de traiter la liste de tâches
+	 */
+	public boolean serverOverloaded(int taskSize) {
+		if (taskSize > this.serverConfig.getTaskSizeCapacity()) {
+			float refusalRate = (((float) taskSize - (float) this.serverConfig.getTaskSizeCapacity()) / (9 * (float) this.serverConfig.getTaskSizeCapacity())) * 100;
+			System.err.println("Tâche trop volumineuse, taux de refus: " + refusalRate);
+			Random rand = new Random();
+			float randomSuccess = rand.nextFloat() * 100;
+			System.err.println("Valeur : " + randomSuccess);
+			if (randomSuccess >= refusalRate) {
+				System.err.println("Tâche va être exécutée!");
+				return false;
+			} else {
+				System.err.println("La taille de la liste de tâches dépasse la capacité du serveur.");
+				return true;
+			}
+
+		} else {
+			return false;
+		}
+
 	}
 }

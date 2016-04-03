@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.io.File;
 
 public interface ServerInterface extends Remote {
-	String fibonacci(int operand) throws Exception;
-	String primeFactor(int operand) throws Exception;
+	int fibonacci(int operand) throws Exception;
+	int primeFactor(int operand) throws Exception;
 	int handleTasks(ArrayList<Operation> pendingOperations) throws Exception;
 }
