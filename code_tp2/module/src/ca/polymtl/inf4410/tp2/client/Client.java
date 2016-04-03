@@ -86,20 +86,22 @@ public class Client {
 				if (arg != null) {
 					System.out.println("Cette commande ne nécéssite pas d'argument.");
 					return;
-				}
-				try {
+				} else {
 					Operation op1 = new Operation("fib", 5);
 					Operation op2 = new Operation("prime", 57);
-					Operation op3 = new Operation("prime", 255);
+					Operation op3 = new Operation("square", 255);
+					Operation op4 = new Operation("prime", 255);
 
 					ArrayList<Operation> taskList = new ArrayList<Operation>();
 					taskList.add(op1);
 					taskList.add(op2);
 					taskList.add(op3);
-					localServerStub.handleTasks(taskList);
-				}
-				catch (Exception e) {
-					System.err.println("Erreur: " + e.getMessage());
+					taskList.add(op4);
+					try {
+						localServerStub.handleTasks(taskList);
+					} catch (Exception e) {
+						System.err.println("Erreurr: " + e.getMessage());
+					}
 				}
 				break;
 		}
