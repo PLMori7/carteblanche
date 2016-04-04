@@ -24,6 +24,7 @@ import java.security.MessageDigest;
 
 import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 import ca.polymtl.inf4410.tp2.shared.Operation;
+import ca.polymtl.inf4410.tp2.shared.ComputingServerException;
 
 public class Client {
 	public static void main(String[] args) {
@@ -116,6 +117,10 @@ public class Client {
 
 		try {
 			Registry registry = LocateRegistry.getRegistry(hostname, 5000);
+			String[] serverList = registry.list();
+			for (int i=0;i<serverList.length;i++){
+				System.out.println(serverList[i]);
+			}
 			stub = (ServerInterface) registry.lookup("RWICHU");
 		} catch (NotBoundException e) {
 			System.out.println("Erreur: Le nom '" + e.getMessage()
