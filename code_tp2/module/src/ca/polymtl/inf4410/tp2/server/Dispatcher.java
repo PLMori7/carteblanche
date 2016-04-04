@@ -222,12 +222,7 @@ public class Dispatcher {
 			try {
 				// Try sending all operations at once
 				ArrayList<Integer> results = mDedicatedServer.handleTasks(new ArrayList<>(mPendingOperations.subList(mStart, mEnd)), mSafe);
-                if (results.size() != 0 ) {
-					mResults.addAll(results);
-				}
-				else {
-					System.out.println("Worker " + mId + " was given 0 result with no exception thrown");
-				}
+				mResults.addAll(results);
 			} catch (ComputingServerOverloadException e) {
 				while (mStart < mEnd) {
 					try {
