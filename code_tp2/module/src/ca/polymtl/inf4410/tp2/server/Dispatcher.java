@@ -227,10 +227,14 @@ public class Dispatcher {
 					} catch (ComputingServerOverloadException stillOverloaded) {
 						// Retry last operation until it succeeds
 						mStart--;
+					} catch (Exception generalException) {
+						System.err.println(generalException.getMessage());
 					}
 
 					mStart++;
 				}
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
 			}
 		}
 
