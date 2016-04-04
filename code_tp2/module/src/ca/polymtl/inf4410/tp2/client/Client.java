@@ -24,7 +24,7 @@ import java.security.MessageDigest;
 
 import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 import ca.polymtl.inf4410.tp2.shared.Operation;
-import ca.polymtl.inf4410.tp2.shared.ComputingServerException;
+import ca.polymtl.inf4410.tp2.shared.ComputingServerOverloadException;
 
 public class Client {
 	public static void main(String[] args) {
@@ -103,7 +103,7 @@ public class Client {
 					try {
 						localServerStub.handleTasks(taskList);
 					} catch (Exception e) {
-						System.err.println("Erreurr: " + e.getMessage());
+						System.err.println("Erreur: " + e.getMessage());
 					}
 				}
 				break;

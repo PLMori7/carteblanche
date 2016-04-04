@@ -30,7 +30,7 @@ import java.nio.file.Paths;
 import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 import ca.polymtl.inf4410.tp2.shared.Operations;
 import ca.polymtl.inf4410.tp2.shared.Operation;
-import ca.polymtl.inf4410.tp2.shared.ComputingServerException;
+import ca.polymtl.inf4410.tp2.shared.ComputingServerOverloadException;
 
 public class ComputingServer implements ServerInterface {
 	private ComputingServerConfig serverConfig = null;
@@ -101,7 +101,7 @@ public class ComputingServer implements ServerInterface {
 	public int handleTasks(ArrayList<Operation> pendingOperations) throws Exception {
 		int result = 0;
 		if (serverOverloaded(pendingOperations.size())) {
-			throw new ComputingServerException("Le serveur est trop chargé pour accepter cette tâche.");
+			throw new ComputingServerOverloadException("Le serveur est trop chargé pour accepter cette tâche.");
 		} else {
 			for(Operation operation: pendingOperations) {
 				System.out.println("Opération: " + operation.getType() + " " + operation.getOperand());
