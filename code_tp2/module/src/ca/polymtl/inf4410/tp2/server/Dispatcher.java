@@ -77,12 +77,22 @@ public class Dispatcher {
 		Long startTime = System.nanoTime();
 		File data = new File(mDataPath);
 		readInstructions(data);
+		int nbOpPerThread = 0;
+		int nbRemainderOp = 0;
 
 		System.out.println("Starting workers...");
-        int nbOpPerThread = (int) Math.ceil((double) mPendingOperations.size() / mServers.size());
+		if ((mPendingOperations.size() % mServers.size() == 0)) {
+			nbOpPerThread = (int) Math.ceil((double) mPendingOperations.size() / mServers.size());
+		} else {
+			nbOpPerThread = (int) Math.floor((double) mPendingOperations.size() / mServers.size());
+			nbRemainderOp = mPendingOperations.size() - (nbOpPerThread * mServers.size());
+		}
         for (int i = 0; i < mServers.size(); i++) {
 			int startIndex = i * nbOpPerThread;
 			int endIndex = (i+1) * nbOpPerThread;
+			if (i == (mServers.size() - 1)) {
+				endIndex += nbRemainderOp;
+			}
 
 			if (endIndex > mPendingOperations.size()) {
 				endIndex = mPendingOperations.size() - 1;

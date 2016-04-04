@@ -101,7 +101,7 @@ public class Client {
 					taskList.add(op4);
 					taskList.add(op5);
 					try {
-						localServerStub.handleTasks(taskList);
+						localServerStub.handleTasks(taskList, true);
 					} catch (Exception e) {
 						System.err.println("Erreur: " + e.getMessage());
 					}
