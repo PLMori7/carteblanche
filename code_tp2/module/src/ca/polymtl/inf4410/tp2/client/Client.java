@@ -24,7 +24,7 @@ import java.security.MessageDigest;
 
 import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 import ca.polymtl.inf4410.tp2.shared.Operation;
-import ca.polymtl.inf4410.tp2.shared.ComputingServerException;
+import ca.polymtl.inf4410.tp2.shared.ComputingServerOverloadException;
 
 public class Client {
 	public static void main(String[] args) {
