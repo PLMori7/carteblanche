@@ -103,7 +103,7 @@ public class Client {
 					try {
 						localServerStub.handleTasks(taskList);
 					} catch (Exception e) {
-						System.err.println("Erreurr: " + e.getMessage());
+						System.err.println("Erreur: " + e.getMessage());
 					}
 				}
 				break;
