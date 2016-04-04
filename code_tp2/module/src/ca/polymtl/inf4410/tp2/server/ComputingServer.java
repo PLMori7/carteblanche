@@ -100,44 +100,47 @@ public class ComputingServer implements ServerInterface {
 	 * Traite la liste de tâches envoyée par le Dispatcher.
 	 */
 	@Override
-	public int handleTasks(ArrayList<Operation> pendingOperations) throws ComputingServerOverloadException {
-		int result = 0;
+	public ArrayList<Integer> handleTasks(ArrayList<Operation> pendingOperations) throws ComputingServerOverloadException {
+		ArrayList<Integer> results = new ArrayList<>();
 		if (serverOverloaded(pendingOperations.size())) {
 			throw new ComputingServerOverloadException("Le serveur est trop chargé pour accepter cette tâche.");
 		} else {
-			for(Operation operation: pendingOperations) {
+			for (Operation operation : pendingOperations) {
 				//System.out.println("Opération: " + operation.getType() + " " + operation.getOperand());
-				switch(operation.getType()){
+				int res = 0;
+				switch (operation.getType()) {
 					case "fib":
 						//System.out.println("\tRésultat: " + fibonacci(operation.getOperand()));
-						result += fibonacci(operation.getOperand());
+						res = fibonacci(operation.getOperand());
 						break;
 					case "prime":
 						//System.out.println("\tRésultat: " + primeFactor(operation.getOperand()));
-						result += primeFactor(operation.getOperand());
+						res = primeFactor(operation.getOperand());
 						break;
 					default:
 						//System.out.println("\t" + operation.getType() + " n'est pas une opération valide (doit être \"fib\" ou \"prime\").");
 						break;
 				}
-			}
+				if (this.serverConfig.getMaliceLevel() == 0) {
+					//System.out.println("Le serveur n'est pas malicieux.");
+				} else {
+					//System.out.println("Alerte! Serveur malicieux d'indice: " + this.serverConfig.getMaliceLevel() + "!");
+					Random rand = new Random();
+					float malice = (rand.nextFloat() * 9) + 1;
+					//System.out.println("Valeur malice: " + malice);
+					if ((malice <= this.serverConfig.getMaliceLevel()) && (malice > 0)) {
+						//System.out.println("Valeur compromise!");
+						res = (int) (rand.nextFloat() * 99) + 1;
+					}
+				}
 
-		}
-		if (this.serverConfig.getMaliceLevel() == 0) {
-			//System.out.println("Le serveur n'est pas malicieux.");
-		} else {
-			//System.out.println("Alerte! Serveur malicieux d'indice: " + this.serverConfig.getMaliceLevel() + "!");
-			Random rand = new Random();
-			float malice = (rand.nextFloat() * 9) + 1;
-			//System.out.println("Valeur malice: " + malice);
-			if ((malice <= this.serverConfig.getMaliceLevel()) && (malice >0)) {
-				//System.out.println("Valeur compromise!");
-				result += (rand.nextFloat() * 99) +1;
+				results.add(res);
 			}
 		}
+
 		//System.out.println("Résultat des opérations: " + result);
 		//System.out.println("Résultat des opérations après modulo: " + (result % 5000));
-		return result;
+		return results;
 	}
 
 

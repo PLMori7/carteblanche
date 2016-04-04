@@ -8,5 +8,5 @@ import java.io.File;
 public interface ServerInterface extends Remote {
 	int fibonacci(int operand) throws Exception;
 	int primeFactor(int operand) throws Exception;
-	int handleTasks(ArrayList<Operation> pendingOperations) throws Exception;
+	ArrayList<Integer> handleTasks(ArrayList<Operation> pendingOperations) throws Exception;
 }
