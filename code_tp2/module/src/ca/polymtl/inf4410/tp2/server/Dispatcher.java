@@ -1,18 +1,11 @@
 package ca.polymtl.inf4410.tp2.server;
 
+import java.io.*;
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.InputStream;
-import java.io.FileInputStream;
 
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -28,6 +21,24 @@ import ca.polymtl.inf4410.tp2.shared.Operation;
 
 public class Dispatcher {
 
+	private ArrayList<Operation> mPendingOperations;
+	private ArrayList<ServerInterface> mServers;
+
+	public void Dispatcher(String dataPath) {
+		loadServerStubs("127.0.0.1");
+		try {
+			run(dataPath);
+		}
+		catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	public void run(String dataPath) throws Exception {
+		File data = new File(dataPath);
+		readInstructions(data);
+	}
+
 	/*
     TODO:
     ArrayList of workers, add/del/get workers, start/stop workers
@@ -35,7 +46,6 @@ public class Dispatcher {
     DispatcherSafe DispatcherUnsafe for different dispatch behaviour (not implemented)
 	*/
 
-	private ArrayList<Operation> mPendingOperations;
 
 	public Dispatcher(File operations) throws Exception {
 		readInstructions(operations);
@@ -46,6 +56,7 @@ public class Dispatcher {
 		Create ArrayList of workers from stubs
 		 */
 	}
+
 
 	public String dispatch() {
 		/*
@@ -82,4 +93,39 @@ public class Dispatcher {
 		return ret;
 	}
 
+	private void loadServerStubs (String hostname) {
+		try {
+			Registry registry = LocateRegistry.getRegistry(hostname);
+			String[] servers = registry.list();
+
+			for (String name : servers) {
+				mServers.add((ServerInterface) registry.lookup(name));
+			}
+		} catch (NotBoundException e) {
+			System.out.println("Erreur: Le nom '" + e.getMessage()
+					+ "' n'est pas défini dans le registre.");
+		} catch (AccessException e) {
+			System.out.println("Erreur: " + e.getMessage());
+		} catch (RemoteException e) {
+			System.out.println("Erreur: " + e.getMessage());
+		}
+
+	}
+
+	private class DispatcherRunnable implements Runnable {
+		private int mId;
+		private int mStart;
+		private int mEnd;
+
+		public DispatcherRunnable(int start, int end, int id) {
+			mStart = start;
+			mEnd = end;
+			mId = id;
+		}
+
+		@Override
+		public void run() {
+		}
+	}
 }
+

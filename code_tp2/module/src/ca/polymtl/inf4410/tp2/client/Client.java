@@ -107,8 +107,6 @@ public class Client {
 				}
 				break;
 		}
-
-
 	}
 
 	private ServerInterface loadServerStub(String hostname) {
