@@ -74,6 +74,7 @@ public class Dispatcher {
 
 	private void runSafe() throws Exception {
 		System.out.println("Computing in safe mode...");
+		Long startTime = System.nanoTime();
 		File data = new File(mDataPath);
 		readInstructions(data);
 
@@ -109,11 +110,13 @@ public class Dispatcher {
 			}
 		}
 
-		System.out.println("Final result: " + result);
+		Long elapsedTime = System.nanoTime() - startTime;
+		System.out.println("Final result: " + result + ", Elapsed time: " + elapsedTime + " ns.");
 	}
 
     private void runUnsafe() throws Exception {
 		System.out.println("Computing in unsafe mode...");
+		Long startTime = System.nanoTime();
 		File data = new File(mDataPath);
 		readInstructions(data);
 
@@ -154,7 +157,8 @@ public class Dispatcher {
 			result %= 5000;
 		}
 
-		System.out.println("Final result: " + result);
+		Long elapsedTime = System.nanoTime() - startTime;
+		System.out.println("Final result: " + result + ", Elapsed time: " + elapsedTime + " ns.");
 	}
 
 	private void readInstructions (File operations) throws Exception {
