@@ -77,7 +77,7 @@ public class Dispatcher {
 		File data = new File(mDataPath);
 		readInstructions(data);
 
-		// Start workers
+		System.out.println("Starting workers...");
         int nbOpPerThread = (int) Math.ceil((double) mPendingOperations.size() / mServers.size());
         for (int i = 0; i < mServers.size(); i++) {
 			int startIndex = i * nbOpPerThread;
@@ -95,12 +95,12 @@ public class Dispatcher {
 			mThreads.add(t);
         }
 
-		// Wait for workers
+		System.out.println("Waiting for workers...");
 		for (Thread t : mThreads) {
 			t.join();
 		}
 
-		// Add final result
+		System.out.println("Compiling results...");
 		int result = 0;
 		for (DispatcherRunnable worker : mWorkers) {
 			for (Integer i: worker.getResults()) {
@@ -117,8 +117,7 @@ public class Dispatcher {
 		File data = new File(mDataPath);
 		readInstructions(data);
 
-		// Start workers
-		System.out.println("Starting workers");
+		System.out.println("Starting workers...");
         for (int i = 0; i < mServers.size(); i++) {
             DispatcherRunnable worker = new DispatcherRunnable(0, mPendingOperations.size(), i, mServers.get(i), false);
 			mWorkers.add(worker);
@@ -128,13 +127,12 @@ public class Dispatcher {
 			mThreads.add(t);
         }
 
-		// Wait for workers
-		System.out.println("Waiting for workers");
+		System.out.println("Waiting for workers...");
 		for (Thread t : mThreads) {
 			t.join();
 		}
 
-		System.out.println("Compiling results");
+		System.out.println("Compiling results...");
 		int result = 0;
 		for (int i = 0; i < mPendingOperations.size(); i++) {
 			ArrayList<Integer> resultsForCurrentOperation = new ArrayList<>();
