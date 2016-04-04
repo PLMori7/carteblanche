@@ -25,30 +25,51 @@ public class Dispatcher {
 	private ArrayList<Operation> mPendingOperations;
 	private ArrayList<ServerInterface> mServers;
     private ArrayList<Thread> mThreads;
+
 	private String mDataPath;
+    private Boolean mSafe;
+    private String mHost;
+    private int mPort;
 
 	public static void main(String args[]) {
-		Dispatcher dispatcher = new Dispatcher("donnees/donnees-2317.txt");
+        if (args.length == 4) {
+            String dataPath = args[0];
+            Boolean safe = args[1].equals("1");
+            String host = args[2];
+            int port = Integer.parseInt(args[3]);
 
-		try {
-			dispatcher.run();
-		}
-		catch (Exception e) {
-			System.out.println("Error while running dispatcher: " + e.getMessage());
-		}
+            Dispatcher dispatcher = new Dispatcher(dataPath, safe, host, port);
+            try {
+                if (safe) {
+                    dispatcher.runSafe();
+                }
+                else {
+                    dispatcher.runUnsafe();
+                }
+            }
+            catch (Exception e) {
+                System.out.println("Error while running dispatcher: " + e.getMessage());
+		    }
+        }
+        else {
+            System.out.println("USAGE: java -jar dispatcher.jar [path] [safe 0|1] [hostname] [port]");
+        }
 	}
 
-	private Dispatcher(String dataPath) {
+	private Dispatcher(String dataPath, boolean safe, String host, int port) {
         mPendingOperations = new ArrayList<>();
         mServers = new ArrayList<>();
         mThreads = new ArrayList<>();
 
         mDataPath = dataPath;
+        mSafe = safe;
+        mHost = host;
+        mPort = port;
 
-		loadServerStubs("127.0.0.1", 5000);
+		loadServerStubs();
 	}
 
-	private void run() throws Exception {
+	private void runSafe() throws Exception {
 		File data = new File(mDataPath);
 		readInstructions(data);
 
@@ -61,6 +82,10 @@ public class Dispatcher {
         }
 	}
 
+    private void runUnsafe() throws Exception {
+        System.out.println("Unsafe mode is not supported yet.");
+	}
+
 	private void readInstructions (File operations) throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(operations));
 		String line;
@@ -71,9 +96,9 @@ public class Dispatcher {
 		}
 	}
 
-	private void loadServerStubs (String hostname, int port) {
+	private void loadServerStubs () {
 		try {
-			Registry registry = LocateRegistry.getRegistry(hostname, port);
+			Registry registry = LocateRegistry.getRegistry(mHost, mPort);
 			String[] serverList = registry.list();
 
 			for (String name : serverList) {
