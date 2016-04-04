@@ -100,7 +100,7 @@ public class ComputingServer implements ServerInterface {
 	 * Traite la liste de tâches envoyée par le Dispatcher.
 	 */
 	@Override
-	public ArrayList<Integer> handleTasks(ArrayList<Operation> pendingOperations) throws ComputingServerOverloadException {
+	public ArrayList<Integer> handleTasks(ArrayList<Operation> pendingOperations, boolean safe) throws ComputingServerOverloadException {
 		ArrayList<Integer> results = new ArrayList<>();
 		if (serverOverloaded(pendingOperations.size())) {
 			throw new ComputingServerOverloadException("Le serveur est trop chargé pour accepter cette tâche.");
@@ -123,7 +123,7 @@ public class ComputingServer implements ServerInterface {
 				}
 				if (this.serverConfig.getMaliceLevel() == 0) {
 					//System.out.println("Le serveur n'est pas malicieux.");
-				} else {
+				} else if (!safe){
 					//System.out.println("Alerte! Serveur malicieux d'indice: " + this.serverConfig.getMaliceLevel() + "!");
 					Random rand = new Random();
 					float malice = (rand.nextFloat() * 9) + 1;

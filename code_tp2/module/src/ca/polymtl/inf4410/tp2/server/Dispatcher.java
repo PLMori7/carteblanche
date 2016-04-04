@@ -23,7 +23,6 @@ import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 import ca.polymtl.inf4410.tp2.shared.Operation;
 
 public class Dispatcher {
-
 	private ArrayList<Operation> mPendingOperations;
 	private ArrayList<ServerInterface> mServers;
 	private ArrayList<DispatcherRunnable> mWorkers;
@@ -62,7 +61,7 @@ public class Dispatcher {
 	private Dispatcher(String dataPath, boolean safe, String host, int port) {
         mPendingOperations = new ArrayList<>();
         mServers = new ArrayList<>();
-		mWorkers = new ArrayList();
+		mWorkers = new ArrayList<>();
         mThreads = new ArrayList<>();
 
         mDataPath = dataPath;
@@ -74,9 +73,11 @@ public class Dispatcher {
 	}
 
 	private void runSafe() throws Exception {
+		System.out.println("Computing in safe mode...");
 		File data = new File(mDataPath);
 		readInstructions(data);
 
+		// Start workers
         int nbOpPerThread = (int) Math.ceil((double) mPendingOperations.size() / mServers.size());
         for (int i = 0; i < mServers.size(); i++) {
 			int startIndex = i * nbOpPerThread;
@@ -86,7 +87,7 @@ public class Dispatcher {
 				endIndex = mPendingOperations.size() - 1;
 			}
 
-            DispatcherRunnable worker = new DispatcherRunnable(startIndex, endIndex, i, mServers.get(i));
+            DispatcherRunnable worker = new DispatcherRunnable(startIndex, endIndex, i, mServers.get(i), true);
 			mWorkers.add(worker);
 
             Thread t = new Thread(worker);
@@ -94,10 +95,12 @@ public class Dispatcher {
 			mThreads.add(t);
         }
 
+		// Wait for workers
 		for (Thread t : mThreads) {
 			t.join();
 		}
 
+		// Add final result
 		int result = 0;
 		for (DispatcherRunnable worker : mWorkers) {
 			for (Integer i: worker.getResults()) {
@@ -110,11 +113,13 @@ public class Dispatcher {
 	}
 
     private void runUnsafe() throws Exception {
+		System.out.println("Computing in unsafe mode...");
 		File data = new File(mDataPath);
 		readInstructions(data);
 
+		// Start workers
         for (int i = 0; i < mServers.size(); i++) {
-            DispatcherRunnable worker = new DispatcherRunnable(0, mPendingOperations.size(), i, mServers.get(i));
+            DispatcherRunnable worker = new DispatcherRunnable(0, mPendingOperations.size(), i, mServers.get(i), false);
 			mWorkers.add(worker);
 
             Thread t = new Thread(worker);
@@ -122,6 +127,7 @@ public class Dispatcher {
 			mThreads.add(t);
         }
 
+		// Wait for workers
 		for (Thread t : mThreads) {
 			t.join();
 		}
@@ -134,6 +140,7 @@ public class Dispatcher {
 				int currentResult = worker.getResults().get(i);
 				resultsForCurrentOperation.add(currentResult);
 
+				// Find most frequent result for each operation
 				int frequency = Collections.frequency(resultsForCurrentOperation, currentResult);
 				if (frequency > highestFrequency) {
 					mostFrequentResult = currentResult;
@@ -141,6 +148,7 @@ public class Dispatcher {
 				}
 			}
 
+			// Add most frequent result
 			result += mostFrequentResult;
 			result %= 5000;
 		}
@@ -163,6 +171,8 @@ public class Dispatcher {
 			Registry registry = LocateRegistry.getRegistry(mHost, mPort);
 			String[] serverList = registry.list();
 
+			System.out.println("Found " + serverList.length + " computing servers");
+
 			for (String name : serverList) {
 				mServers.add((ServerInterface) registry.lookup(name));
 			}
@@ -181,18 +191,24 @@ public class Dispatcher {
 		}
 	}
 
+	/**
+	 * Worker that provides Operations to ComputingServers until all operations
+	 * have been computed. There is one worker per server, each in its own thread.
+	 */
 	private class DispatcherRunnable implements Runnable {
 		private int mId;
 		private int mStart;
 		private int mEnd;
+		private boolean mSafe;
 
 		private ServerInterface mDedicatedServer;
 		private ArrayList<Integer> mResults;
 
-		private DispatcherRunnable(int start, int end, int id, ServerInterface dedicatedServer) {
+		private DispatcherRunnable(int start, int end, int id, ServerInterface dedicatedServer, boolean safe) {
 			mStart = start;
 			mEnd = end;
 			mId = id;
+			mSafe = safe;
 
 			mDedicatedServer = dedicatedServer;
 			mResults = new ArrayList<>();
@@ -201,25 +217,20 @@ public class Dispatcher {
 		@Override
 		public void run() {
 			try {
-				mResults.addAll(mDedicatedServer.handleTasks(new ArrayList<>(mPendingOperations.subList(mStart, mEnd))));
-			}
-			catch (ComputingServerOverloadException e) {
+				// Try sending all operations at once
+				mResults.addAll(mDedicatedServer.handleTasks(new ArrayList<>(mPendingOperations.subList(mStart, mEnd)), mSafe));
+			} catch (ComputingServerOverloadException e) {
 				while (mStart < mEnd) {
-                    try {
-                        mResults.addAll(mDedicatedServer.handleTasks(new ArrayList<>(mPendingOperations.subList(mStart, mStart + 1))));
-                    }
-                    catch (ComputingServerOverloadException stillOverloaded) {
-                        mStart--;
-                    }
-                    catch (Exception generalException) {
-                        System.out.println("wtf?");
-                    }
+					try {
+						// If it fails, send them one by one until all operations have been computed
+						mResults.addAll(mDedicatedServer.handleTasks(new ArrayList<>(mPendingOperations.subList(mStart, mStart + 1)), mSafe));
+					} catch (ComputingServerOverloadException stillOverloaded) {
+						// Retry last operation until it succeeds
+						mStart--;
+					}
 
-                    mStart++;
-                }
-			}
-			catch (Exception e) {
-				System.out.println("wtf?");
+					mStart++;
+				}
 			}
 		}
 
