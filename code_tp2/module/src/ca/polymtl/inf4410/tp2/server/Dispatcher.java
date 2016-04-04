@@ -118,6 +118,7 @@ public class Dispatcher {
 		readInstructions(data);
 
 		// Start workers
+		System.out.println("Starting workers");
         for (int i = 0; i < mServers.size(); i++) {
             DispatcherRunnable worker = new DispatcherRunnable(0, mPendingOperations.size(), i, mServers.get(i), false);
 			mWorkers.add(worker);
@@ -128,10 +129,12 @@ public class Dispatcher {
         }
 
 		// Wait for workers
+		System.out.println("Waiting for workers");
 		for (Thread t : mThreads) {
 			t.join();
 		}
 
+		System.out.println("Compiling results");
 		int result = 0;
 		for (int i = 0; i < mPendingOperations.size(); i++) {
 			ArrayList<Integer> resultsForCurrentOperation = new ArrayList<>();
@@ -218,7 +221,13 @@ public class Dispatcher {
 		public void run() {
 			try {
 				// Try sending all operations at once
-				mResults.addAll(mDedicatedServer.handleTasks(new ArrayList<>(mPendingOperations.subList(mStart, mEnd)), mSafe));
+				ArrayList<Integer> results = mDedicatedServer.handleTasks(new ArrayList<>(mPendingOperations.subList(mStart, mEnd)), mSafe);
+                if (results.size() != 0 ) {
+					mResults.addAll(results);
+				}
+				else {
+					System.out.println("Worker " + mId + " was given 0 result with no exception thrown");
+				}
 			} catch (ComputingServerOverloadException e) {
 				while (mStart < mEnd) {
 					try {
@@ -227,13 +236,13 @@ public class Dispatcher {
 					} catch (ComputingServerOverloadException stillOverloaded) {
 						// Retry last operation until it succeeds
 						mStart--;
-					} catch (Exception generalException) {
+					} catch (RemoteException generalException) {
 						System.err.println(generalException.getMessage());
 					}
 
 					mStart++;
 				}
-			} catch (Exception e) {
+			} catch (RemoteException e) {
 				System.err.println(e.getMessage());
 			}
 		}

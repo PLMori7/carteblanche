@@ -68,10 +68,12 @@ public class ComputingServer implements ServerInterface {
 
 	private void run(String name, int port, int capacity, int malice) {
 		this.serverConfig = new ComputingServerConfig(name, port, capacity, malice);
+		/*
 		System.out.println("Server Name: " + serverConfig.getName());
 		System.out.println("Server Port: " + serverConfig.getPort());
 		System.out.println("Server max task size: " + serverConfig.getTaskSizeCapacity());
 		System.out.println("Server malice lvl: " + serverConfig.getMaliceLevel());
+		*/
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
@@ -104,30 +106,28 @@ public class ComputingServer implements ServerInterface {
 			throw new ComputingServerOverloadException("Le serveur est trop chargé pour accepter cette tâche.");
 		} else {
 			for (Operation operation : pendingOperations) {
-				System.out.println("Opération: " + operation.getType() + " " + operation.getOperand());
+				//System.out.println("Opération: " + operation.getType() + " " + operation.getOperand());
 				int res = 0;
 				switch (operation.getType()) {
 					case "fib":
-						System.out.println("\tRésultat: " + fibonacci(operation.getOperand()));
+						//System.out.println("\tRésultat: " + fibonacci(operation.getOperand()));
 						res = fibonacci(operation.getOperand());
 						break;
 					case "prime":
-						System.out.println("\tRésultat: " + primeFactor(operation.getOperand()));
+						//System.out.println("\tRésultat: " + primeFactor(operation.getOperand()));
 						res = primeFactor(operation.getOperand());
 						break;
 					default:
-						System.out.println("\t" + operation.getType() + " n'est pas une opération valide (doit être \"fib\" ou \"prime\").");
+						//System.out.println("\t" + operation.getType() + " n'est pas une opération valide (doit être \"fib\" ou \"prime\").");
 						break;
 				}
-				if (this.serverConfig.getMaliceLevel() == 0) {
-					System.out.println("Le serveur n'est pas malicieux.");
-				} else if (!safe){
-					System.out.println("Alerte! Serveur malicieux d'indice: " + this.serverConfig.getMaliceLevel() + "!");
+				if (!safe){
+					//System.out.println("Alerte! Serveur malicieux d'indice: " + this.serverConfig.getMaliceLevel() + "!");
 					Random rand = new Random();
 					float malice = (rand.nextFloat() * 9) + 1;
-					System.out.println("Valeur malice: " + malice);
+					//System.out.println("Valeur malice: " + malice);
 					if ((malice <= this.serverConfig.getMaliceLevel()) && (malice > 0)) {
-						System.out.println("Valeur compromise!");
+						//System.out.println("Valeur compromise!");
 						res = (int) (rand.nextFloat() * 99) + 1;
 					}
 				}
@@ -162,15 +162,15 @@ public class ComputingServer implements ServerInterface {
 	public boolean serverOverloaded(int taskSize) {
 		if (taskSize > this.serverConfig.getTaskSizeCapacity()) {
 			float refusalRate = (((float) taskSize - (float) this.serverConfig.getTaskSizeCapacity()) / (9 * (float) this.serverConfig.getTaskSizeCapacity())) * 100;
-			System.err.println("Tâche trop volumineuse, taux de refus: " + refusalRate);
+			//System.err.println("Tâche trop volumineuse, taux de refus: " + refusalRate);
 			Random rand = new Random();
 			float randomSuccess = rand.nextFloat() * 100;
-			System.err.println("Valeur : " + randomSuccess);
+			//System.err.println("Valeur : " + randomSuccess);
 			if (randomSuccess >= refusalRate) {
-				System.err.println("Tâche va être exécutée!");
+				//System.err.println("Tâche va être exécutée!");
 				return false;
 			} else {
-				System.err.println("La taille de la liste de tâches dépasse la capacité du serveur.");
+				//System.err.println("La taille de la liste de tâches dépasse la capacité du serveur.");
 				return true;
 			}
 
