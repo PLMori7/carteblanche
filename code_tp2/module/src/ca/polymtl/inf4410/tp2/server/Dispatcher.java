@@ -85,7 +85,7 @@ public class Dispatcher {
 			int endIndex = (i+1) * nbOpPerThread;
 
 			if (endIndex > mPendingOperations.size()) {
-				endIndex = mPendingOperations.size() - 1;
+				endIndex = mPendingOperations.size();
 			}
 
             DispatcherRunnable worker = new DispatcherRunnable(startIndex, endIndex, i, mServers.get(i), true);
@@ -104,7 +104,7 @@ public class Dispatcher {
 		System.out.println("Compiling results...");
 		int result = 0;
 		for (DispatcherRunnable worker : mWorkers) {
-			for (Integer i: worker.getResults()) {
+			for (Integer i: worker.mResults) {
 				result += i;
 				result %= 5000;
 			}
@@ -234,13 +234,19 @@ public class Dispatcher {
 						// Retry last operation until it succeeds
 						mStart--;
 					} catch (RemoteException generalException) {
-						System.err.println(generalException.getMessage());
+						System.err.println("Server has crashed");
+                        /*
+                        TODO
+                         */
 					}
 
 					mStart++;
 				}
 			} catch (RemoteException e) {
-				System.err.println(e.getMessage());
+                System.err.println("Server has crashed");
+                /*
+                TODO
+                 */
 			}
 		}
 
