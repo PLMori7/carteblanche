@@ -16,27 +16,69 @@ parameters:
   subnet_id:
     type: string
     description: Sous-reseau dans lequel le load balancer sera situe
-    default: #A completer
+    default: 06519f3e-a697-4fab-aea7-4e232ef81bfd
+
+  key_name:
+    type: string
+    default: vm1-key
+
+  private_network:
+    type: string
+    default: INF4410-08-net
+
+  public_network:
+    type: string
+    default: reseau-pour-tous
 
 resources:
   web_nodes:
       type: OS::Heat::ResourceGroup
       properties:
-      #A completer
+        count: 2
+        resource_def:
+            type: OS::Nova::Server
+            properties:
+                flavor: {get_param: flavor}
+                image: {get_param: image}
+                key_name: {get_param: key_name}
+                networks: 
+                    - network: {get_param: public_network}
+                    - network: {get_param: private_network}
+                user_data_format: RAW
+                user_data:
+                    str_replace: 
+                        template: |
+                            #!/bin/bash
+                            touch /tmp/test
+                            wget http://secretaire.dorsal.polymtl.ca/~hdaoud/infonuagique/server.py -O /root/server.py > /tmp/wget.out 2>&1
+                            python /root/server.py & > /tmp/python.out 2>&1
+                        params:
+                            void: void
 
 
   pool:
       type: OS::Neutron::Pool
-      #A completer
+      properties:
+        monitors: [{get_resource: monitor}]
+        subnet_id: {get_param: subnet_id}
+        lb_method: ROUND_ROBIN
+        protocol: HTTP
+        vip:
+            protocol_port: 80
 
   lbalancer:
       type: OS::Neutron::LoadBalancer
-      #A completer
+      properties:
+        pool_id: {get_resource: pool}
+        protocol_port: 80
 
   monitor:
       type: OS::Neutron::HealthMonitor
       properties:
-
+        delay: 13
+        max_retries: 2
+        timeout: 9
+        type: TCP
 
 outputs:
   pool_ip_address:
