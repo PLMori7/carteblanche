@@ -1,4 +1,4 @@
-heat_template_version: 2013-05-2
+heat_template_version: 2014-10-16 
 
 description: >
   Hello world HOT template that just defines a single server.
@@ -7,37 +7,25 @@ parameters:
   key_name:
     type: string
     description: Name of an existing key pair to use for the server
-    constraints:
-      - custom_constraint: nova.keypair
+    default: vm1-key
+
   flavor:
     type: string
     description: Flavor for the server to be created
-    default: m1.small
-    constraints:
-      - custom_constraint: nova.flavor
+    default: INF4410-mini
+  
   image:
     type: string
     description: Image ID or image name to use for the server
-    constraints:
-      - custom_constraint: glance.image
-  admin_pass:
+    default: INF4410-Ubuntu-trusty-mini
+  
+  private_network:
     type: string
-    description: Admin password
-    hidden: true
-    constraints:
-      - length: { min: 6, max: 8 }
-        description: Password length must be between 6 and 8 characters
-      - allowed_pattern: "[a-zA-Z0-9]+"
-        description: Password must consist of characters and numbers only
-      - allowed_pattern: "[A-Z]+[a-zA-Z0-9]*"
-        description: Password must start with an uppercase character
-  db_port:
-    type: number
-    description: Database port number
-    default: 50000
-    constraints:
-      - range: { min: 40000, max: 60000 }
-        description: Port number must be between 40000 and 60000
+    default: INF4410-08-net
+
+  public_network:
+    type: string
+    default: reseau-pour-tous
 
 resources:
   server:
@@ -46,15 +34,42 @@ resources:
       key_name: { get_param: key_name }
       image: { get_param: image }
       flavor: { get_param: flavor }
-      admin_pass: { get_param: admin_pass }
+      networks: 
+        - network: {get_param: public_network}
+        - network: {get_param: private_network}
       user_data:
         str_replace:
           template: |
             #!/bin/bash
-            echo db_port
+            
+            # reponses au questions de mysql-server-5.5 et de phpmyadmin en utilisant les outils fournis dans le paquage debconf-utils
+            
+            # -----------------------------------
+            
+            # installation de mysql-server, mysql-client, apache2,  php5, libapache2-mod-php5, php5-mysql, phpmyadmin. Dans le meme ordre
+            
+            export DEBIAN_FRONTEND="noninteractive"
+            sudo apt-get update -y -q
+            sudo apt-get install -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" debconf-utils
+            
+            PASS="hellohello"
+            # mysql
+            sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $PASS"
+            sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $PASS"
+            
+            #phpmyadmin
+            sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+            sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password $PASS"
+            sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/admin-pass password $PASS"
+            sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/mysql/app-pass password $PASS"
+            sudo debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+            
+            sudo apt-get install  -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" mysql-server mysql-client apache2 php5 libapache2-mod-php5 php5-mysql phpmyadmin
+            
+            echo "Include /etc/phpmyadmin/apache.conf" | sudo tee --append /etc/apache2/apache2.conf
+            sudo service apache2 restart
           params:
-            db_port: { get_param: db_port }
-
+            void: void
 outputs:
   server_networks:
     description: The networks of the deployed server
